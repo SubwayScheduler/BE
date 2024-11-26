@@ -1,10 +1,6 @@
 fastapi
 uvicorn
-sqlmodel
-sqlalchemy
-sqlalchemy-utils
-alembic
 pymysql
 python-dotenv
 cryptography
-alembic
+python-multipart
