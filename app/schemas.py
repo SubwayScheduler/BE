@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import time
+from typing import Literal
 
 # Administrator 모델
 class AdministratorBase(BaseModel):
@@ -24,13 +25,14 @@ class Administrator(AdministratorInDBBase):
 
 # Line 모델
 class LineBase(BaseModel):
-    route_shape: str
+    route_shape: Optional[Literal['ROUND-TRIP', 'CIRCULAR']] = None
 
 class LineCreate(LineBase):
-    pass
+    name: str
 
-class LineUpdate(BaseModel):
-    route_shape: Optional[str] = None
+class LineUpdate(LineBase):
+    name: Optional[str] = None
+    route_shape: Optional[Literal['ROUND-TRIP', 'CIRCULAR']] = None
 
 class LineInDBBase(LineBase):
     ID: int

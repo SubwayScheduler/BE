@@ -35,8 +35,10 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `subway_scheduler`.`line` (
   `ID` INT NOT NULL AUTO_INCREMENT,
-  `route_shape` VARCHAR(20) NOT NULL,
-  PRIMARY KEY (`ID`))
+  `name` VARCHAR(50) NOT NULL,
+  `route_shape` ENUM('ROUND-TRIP', 'CIRCULAR') NOT NULL DEFAULT 'ROUND-TRIP',
+  PRIMARY KEY (`ID`),
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -165,7 +167,9 @@ CREATE TABLE IF NOT EXISTS `subway_scheduler`.`train` (
   INDEX `Line_ID` (`Line_ID` ASC) VISIBLE,
   CONSTRAINT `train_ibfk_1`
     FOREIGN KEY (`Line_ID`)
-    REFERENCES `subway_scheduler`.`line` (`ID`))
+    REFERENCES `subway_scheduler`.`line` (`ID`),
+  CONSTRAINT `chk_capacity_positive`
+    CHECK (capacity > 0))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
