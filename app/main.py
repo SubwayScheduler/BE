@@ -1,8 +1,17 @@
 # app/main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routers import motorman, train, line, train_motorman, line_csv
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(motorman.router, prefix="/motorman", tags=["Motorman"])
 app.include_router(train.router, prefix="/train", tags=["Train"])

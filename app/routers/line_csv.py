@@ -146,9 +146,9 @@ async def upload_congestion(line_id: int, file: UploadFile = File(...)):
                     station_name = row['역명']
                     bound_to = row['상하구분']
 
-                    if bound_to == '상선' or bound_to == '외선':
+                    if bound_to == '하선' or bound_to == '외선':
                         bound_to_value = 0
-                    elif bound_to == '하선' or bound_to == '내선':
+                    elif bound_to == '상선' or bound_to == '내선':
                         bound_to_value = 1
                     else:
                         raise HTTPException(status_code=400, detail=f"Invalid bound_to value: {bound_to}")
@@ -292,7 +292,7 @@ async def export_congestion(line_id: int):
             # 각 역의 혼잡도 데이터 조회 및 CSV 행 작성
             for station in stations:
                 station_id, station_name, bound_to = station
-                bound_to_str = '상선' if bound_to == 0 else '하선'
+                bound_to_str = '상선' if bound_to == 1 else '하선'
                 
                 # MySQL의 올바른 시간 포맷 사용
                 cur.execute("""
