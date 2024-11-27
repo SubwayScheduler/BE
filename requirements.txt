@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pymysql
+python-dotenv
+cryptography
+python-multipart
