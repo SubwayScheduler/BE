@@ -23,7 +23,7 @@ USE `subway_scheduler` ;
 CREATE TABLE IF NOT EXISTS `subway_scheduler`.`administrator` (
   `ID` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) NOT NULL,
-  `password` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(60) NOT NULL,
   PRIMARY KEY (`ID`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4

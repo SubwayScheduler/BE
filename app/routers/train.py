@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Depends
 from typing import List
 from database import mysql_create_session, get_db_connection
+from auth import get_current_user
 
 from schemas import Train, TrainCreate, TrainUpdate
 from typing import Optional
 import pymysql
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_current_user)]
+)
 
 # 호선과 수용인원에 따른 열차 조회
 @router.get("/")

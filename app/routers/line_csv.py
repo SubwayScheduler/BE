@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 import csv
 from fastapi.responses import StreamingResponse
 from io import StringIO, BytesIO
@@ -8,8 +8,12 @@ from schemas import StationCreate, ETACreate, GarageCreate, CongestionCreate, Pl
 from pydantic import ValidationError
 import pymysql
 from fastapi.responses import Response
+from auth import get_current_user
 
-router = APIRouter()
+
+router = APIRouter(
+    dependencies=[Depends(get_current_user)]
+)
 
 @router.post("/{line_id}/import/stations")
 async def upload_stations(line_id: int, file: UploadFile = File(...)):
