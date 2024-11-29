@@ -13,13 +13,13 @@ router = APIRouter(
 
 # 호선과 수용인원에 따른 열차 조회
 @router.get("/")
-def search_train(line_id: Optional[int] = None, capacity: int = 0):
+def search_train(line_id: Optional[int] = None):
     with get_db_connection() as (conn, cur):
         try:
             sql = "SELECT * FROM train"
             if line_id:
-                sql += " WHERE Line_ID = %s AND capacity > %s"
-                cur.execute(sql, (line_id, capacity))
+                sql += " WHERE Line_ID = %s"
+                cur.execute(sql, (line_id,))
             else:
                 cur.execute(sql)
             
@@ -36,8 +36,8 @@ def search_train(line_id: Optional[int] = None, capacity: int = 0):
 def create_train(train: TrainCreate):
     with get_db_connection() as (conn, cur):
         try:
-            sql = "INSERT INTO train (capacity, Line_ID) VALUES (%s, %s)"
-            cur.execute(sql, (train.capacity, train.Line_ID))
+            sql = "INSERT INTO train (Line_ID) VALUES (%s)"
+            cur.execute(sql, (train.Line_ID,))
             conn.commit()
             return {"message": "Train created successfully"}
         except pymysql.Error as e:
@@ -54,8 +54,8 @@ def create_train(train: TrainCreate):
 def update_train(train_id: int, train: TrainUpdate):
     with get_db_connection() as (conn, cur):
         try:
-            sql = "UPDATE train SET capacity = %s, Line_ID = %s WHERE ID = %s"
-            cur.execute(sql, (train.capacity, train.Line_ID, train_id))
+            sql = "UPDATE train SET Line_ID = %s WHERE ID = %s"
+            cur.execute(sql, (train.Line_ID, train_id))
             conn.commit()
             return {"message": "Train updated successfully"}
         except pymysql.Error as e:
