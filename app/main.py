@@ -1,7 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import motorman, train, line, train_motorman, line_csv, administrator
+from routers import motorman, train, line, train_motorman, line_csv, administrator, scheduler
 
 app = FastAPI(
     title="Subway Scheduler API",
@@ -28,3 +28,4 @@ app.include_router(line.router, prefix="/line", tags=["Line"])
 app.include_router(train_motorman.router, prefix="/train_motorman", tags=["TrainMotorman"])
 app.include_router(line_csv.router, prefix="/line_csv", tags=["LineCSV"])
 app.include_router(administrator.router, prefix="/administrator", tags=["Administrator"])
+app.include_router(scheduler.router, prefix="/scheduler", tags=["Scheduler"])

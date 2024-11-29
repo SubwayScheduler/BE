@@ -4,15 +4,28 @@ CREATE PROCEDURE GetCircularHistogram(IN lineId INT, IN boundTo INT)
 BEGIN
     WITH RECURSIVE
         time_slots AS (
-            SELECT
-                '05:30:00' AS base_time
-            UNION ALL
-            SELECT
-                ADDTIME(base_time, '00:30:00') AS base_time
-            FROM
-                time_slots
-            WHERE
-                base_time < '24:00:00'
+            SELECT base_time, slot_id
+            FROM (
+                -- 05:30 ~ 23:30
+                WITH RECURSIVE regular_slots AS (
+                    SELECT '05:30:00' AS base_time, 1 AS slot_id
+                    UNION ALL
+                    SELECT ADDTIME(base_time, '00:30:00'), slot_id + 1
+                    FROM regular_slots
+                    WHERE base_time < '23:30:00'
+                )
+                SELECT base_time, slot_id FROM regular_slots
+                
+                UNION ALL
+                
+                -- 00:00 ~ 00:30
+                SELECT base_time, slot_id
+                FROM (
+                    SELECT '00:00:00' AS base_time, 38 AS slot_id
+                    UNION ALL
+                    SELECT '00:30:00', 39
+                ) AS midnight_slots
+            ) AS all_slots
         ),
         selected_stations AS (
             SELECT
@@ -133,26 +146,52 @@ BEGIN
         ),
         base_histogram AS (
             SELECT
-                a.start_time,
+                ADDTIME(a.start_time, '00:15:00') as start_time,
+                MIN(ts.slot_id) + 1 as slot_id,
                 SUM(COALESCE(cs.total_congestion, 0)) AS total_congestion
-            FROM all_arrival_data a
-            LEFT JOIN congestion_summary cs 
-                ON cs.platform_station_ID = a.ID
+            FROM
+                all_arrival_data a
+                LEFT JOIN congestion_summary cs ON cs.platform_station_ID = a.ID
                 AND cs.platform_bound_to = a.bound_to
                 AND cs.time_slot = a.time_slot
-            GROUP BY a.start_time
-            ORDER BY a.start_time
+                LEFT JOIN time_slots ts ON ts.base_time = a.start_time
+            GROUP BY
+                a.start_time
+            
+            UNION ALL
+            
+            -- 05:15의 초기값 추가
+            SELECT 
+                '05:15:00' as start_time,
+                0 as slot_id,
+                0 as total_congestion
+
+            UNION ALL
+
+            -- 01:15의 초기값 추가
+            SELECT 
+                '01:15:00' as start_time,
+                40 as slot_id,
+                0 as total_congestion
         )
     SELECT 
         h.start_time,
         h.total_congestion,
         ROUND(h.total_congestion / NULLIF(SUM(h.total_congestion) OVER (), 0), 4) AS pdf_value,
-        ROUND(SUM(h.total_congestion) OVER (ORDER BY h.start_time) 
-              / NULLIF(SUM(h.total_congestion) OVER (), 0), 4) AS cdf_value
+        ROUND(
+            (
+                COALESCE(
+                    SUM(h.total_congestion) OVER (ORDER BY h.slot_id ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),
+                    0
+                )
+                + (h.total_congestion * 0.5)
+            ) / NULLIF(SUM(h.total_congestion) OVER (), 0), 
+            4
+        ) AS cdf_value
     FROM 
         base_histogram h
     ORDER BY 
-        h.start_time;
+        h.slot_id;
 END $$
 
 DELIMITER ;
