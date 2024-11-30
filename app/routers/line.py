@@ -1,12 +1,13 @@
-# app/routers/motorman.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Depends
 from typing import List
 from database import mysql_create_session, get_db_connection
-
+from auth import get_current_user
 from schemas import Line, LineCreate, LineUpdate
 import pymysql
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_current_user)]
+)
 
 # 검색 없이 모든 호선 조회
 @router.get("/")

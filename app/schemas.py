@@ -169,14 +169,12 @@ class Motorman(MotormanInDBBase):
 
 # Train 모델
 class TrainBase(BaseModel):
-    capacity: int
     Line_ID: int
 
 class TrainCreate(TrainBase):
     pass
 
 class TrainUpdate(BaseModel):
-    capacity: Optional[int] = None
     Line_ID: Optional[int] = None
 
 class TrainInDBBase(TrainBase):

@@ -4,8 +4,11 @@ from typing import List
 from database import mysql_create_session, get_db_connection
 
 from schemas import Motorman, MotormanCreate, MotormanUpdate
+from auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_current_user)]
+)
 
 @router.get("/")
 def search_motorman(motorman_name: str = None ):

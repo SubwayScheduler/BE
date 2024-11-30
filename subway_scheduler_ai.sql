@@ -23,7 +23,7 @@ USE `subway_scheduler` ;
 CREATE TABLE IF NOT EXISTS `subway_scheduler`.`administrator` (
   `ID` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) NOT NULL,
-  `password` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(60) NOT NULL,
   PRIMARY KEY (`ID`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
@@ -161,15 +161,12 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `subway_scheduler`.`train` (
   `ID` INT NOT NULL AUTO_INCREMENT,
-  `capacity` INT NOT NULL,
   `Line_ID` INT NOT NULL,
   PRIMARY KEY (`ID`),
   INDEX `Line_ID` (`Line_ID` ASC) VISIBLE,
   CONSTRAINT `train_ibfk_1`
     FOREIGN KEY (`Line_ID`)
-    REFERENCES `subway_scheduler`.`line` (`ID`),
-  CONSTRAINT `chk_capacity_positive`
-    CHECK (capacity > 0))
+    REFERENCES `subway_scheduler`.`line` (`ID`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
