@@ -81,10 +81,29 @@ async def get_departure_times(line_id: int):
                     "cdf_value": round(target_cdf, 4)
                 })
             
+            cur.execute("""
+                SELECT station.name, eta.ET FROM eta, station
+                WHERE eta.station_ID = station.ID
+                AND station.line_ID = %s
+            """, (line_id,))
+
+            etas = cur.fetchall()
+            result_2 = []
+            for eta in etas:
+                total_seconds = int(eta[1].total_seconds())  # timedelta를 초로 변환
+                minutes = total_seconds // 60
+                seconds = total_seconds % 60
+                formatted_et = f"{minutes:02d}:{seconds:02d}"  # MM:SS 형식으로 변환
+                result_2.append({
+                    "station_name": eta[0],
+                    "et": formatted_et
+                })
+            
             return {
                 "line_id": line_id,
                 "train_count": N,
-                "departure_times": result
+                "departure_times": result,
+                "etas": result_2
             }
             
         except Exception as e:
