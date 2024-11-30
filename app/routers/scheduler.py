@@ -32,7 +32,7 @@ def interpolate_time(t1: time, t2: time, cdf1: float, cdf2: float, target_cdf: f
     return time(hours, minutes, seconds)
 
 @router.get("/line/{line_id}/departure-times")
-async def get_departure_times(line_id: int):
+async def get_departure_times(line_id: int, bound_to: int):
     with get_db_connection() as (conn, cur):
         try:
             # 해당 노선의 열차 수 조회
@@ -42,8 +42,18 @@ async def get_departure_times(line_id: int):
             if N == 0:
                 raise HTTPException(status_code=404, detail="No trains found for this line")
             
-            # GetRoundTripHistogram 프로시저 호출
-            cur.execute("CALL GetRoundTripHistogram(%s)", (line_id,))
+            if bound_to not in [1, 0]:
+                raise HTTPException(status_code=400, detail="Invalid bound_to value")
+            
+            # 해당 노선의 route_shape 조회
+            cur.execute("SELECT route_shape FROM line WHERE ID = %s", (line_id,))
+            route_shape = cur.fetchone()[0]
+
+            if route_shape == 'CIRCULAR':
+                cur.execute("CALL GetCircularHistogram(%s, %s)", (line_id, bound_to))
+            else:
+                cur.execute("CALL GetRoundTripHistogram(%s)", (line_id))
+            
             histogram_data = cur.fetchall()
             
             # 다음 결과셋 비우기 (여러 결과 반환될 우려)
