@@ -14,18 +14,27 @@ def str_to_time(time_str: str) -> time:
 
 def interpolate_time(t1: time, t2: time, cdf1: float, cdf2: float, target_cdf: float) -> time:
     """선형 보간법으로 목표 CDF 값에 해당하는 시간을 계산"""
-    # time 객체를 초로 변환 (30분 구간의 끝점 사용)
+    # time 객체를 초로 변환
     t1_seconds = (t1.hour * 3600 + t1.minute * 60 + t1.second)
     t2_seconds = (t2.hour * 3600 + t2.minute * 60 + t2.second)
     
+    # t2가 t1보다 작은 경우 (자정을 넘어가는 경우) 24시간을 더해줌
+    if t2_seconds < t1_seconds:
+        t2_seconds += 24 * 3600
+    
     # 선형 보간
-    ratio = (target_cdf - cdf1) / (cdf2 - cdf1)
-    interpolated_seconds = t1_seconds + (t2_seconds - t1_seconds) * ratio
+    if abs(cdf2 - cdf1) < 1e-10:  # CDF 값이 너무 가까운 경우
+        interpolated_seconds = t1_seconds  # 첫 번째 시간 사용
+    else:
+        ratio = (target_cdf - cdf1) / (cdf2 - cdf1)
+        interpolated_seconds = t1_seconds + (t2_seconds - t1_seconds) * ratio
+    
+    # 24시간으로 정규화
+    while interpolated_seconds >= 24 * 3600:
+        interpolated_seconds -= 24 * 3600
     
     # 초를 time 객체로 변환
     hours = int(interpolated_seconds // 3600)
-    if hours >= 24:
-        hours -= 24
     minutes = int((interpolated_seconds % 3600) // 60)
     seconds = int(interpolated_seconds % 60)
     
@@ -113,7 +122,8 @@ async def get_departure_times(line_id: int, bound_to: int):
                 "line_id": line_id,
                 "train_count": N,
                 "departure_times": result,
-                "etas": result_2
+                "etas": result_2,
+                "route_shape": route_shape
             }
             
         except Exception as e:
