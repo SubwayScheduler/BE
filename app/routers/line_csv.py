@@ -262,26 +262,30 @@ async def export_stations(line_id: int):
 
 @router.get("/{line_id}/export/congestion")
 async def export_congestion(line_id: int):
-    # 시간대 생성 (5:30부터 0:30까지, 30분 간격)
-    time_slots = []
-    current_time = time(5, 30)
-    while current_time != time(0, 30):
-        time_slots.append(current_time)
-        hours = current_time.hour
-        minutes = current_time.minute + 30
-        if minutes >= 60:
-            hours = (hours + 1) % 24
-            minutes = 0
-        current_time = time(hours, minutes)
-    time_slots.append(time(0, 30))
-
-    csv_rows = []
-    # CSV 헤더 작성
-    header = ['역번호', '역명', '상하구분'] + [t.strftime('%H:%M') for t in time_slots]
-    csv_rows.append(','.join(map(str, header)))
-    
     with get_db_connection() as (conn, cur):
         try:
+            # 라인의 route_shape 조회
+            cur.execute("SELECT route_shape FROM line WHERE ID = %s", (line_id,))
+            route_shape = cur.fetchone()[0]
+
+            # 시간대 생성 (5:30부터 0:30까지, 30분 간격)
+            time_slots = []
+            current_time = time(5, 30)
+            while current_time != time(0, 30):
+                time_slots.append(current_time)
+                hours = current_time.hour
+                minutes = current_time.minute + 30
+                if minutes >= 60:
+                    hours = (hours + 1) % 24
+                    minutes = 0
+                current_time = time(hours, minutes)
+            time_slots.append(time(0, 30))
+
+            csv_rows = []
+            # CSV 헤더 작성
+            header = ['역번호', '역명', '상하구분'] + [t.strftime('%H:%M') for t in time_slots]
+            csv_rows.append(','.join(map(str, header)))
+            
             # 해당 라인의 역 목록 조회
             cur.execute("""
                 SELECT DISTINCT s.ID, s.name, p.bound_to
@@ -296,7 +300,11 @@ async def export_congestion(line_id: int):
             # 각 역의 혼잡도 데이터 조회 및 CSV 행 작성
             for station in stations:
                 station_id, station_name, bound_to = station
-                bound_to_str = '상선' if bound_to == 1 else '하선'
+                # route_shape에 따라 bound_to_str 설정
+                if route_shape == 'CIRCULAR':
+                    bound_to_str = '내선' if bound_to == 1 else '외선'
+                else:
+                    bound_to_str = '상선' if bound_to == 1 else '하선'
                 
                 # MySQL의 올바른 시간 포맷 사용
                 cur.execute("""
