@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS `subway_scheduler`.`station` (
   CONSTRAINT `fk_station_line1`
     FOREIGN KEY (`line_ID`)
     REFERENCES `subway_scheduler`.`line` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS `subway_scheduler`.`platform` (
   CONSTRAINT `fk_platform_station1`
     FOREIGN KEY (`station_ID`)
     REFERENCES `subway_scheduler`.`station` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -95,7 +95,12 @@ CREATE TABLE IF NOT EXISTS `subway_scheduler`.`congestion` (
     FOREIGN KEY (`platform_station_ID` , `platform_bound_to`)
     REFERENCES `subway_scheduler`.`platform` (`station_ID` , `bound_to`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION,
+  CONSTRAINT check_congest_status
+    CHECK (congest_status >= 0 AND congest_status <= 1),
+  CONSTRAINT check_time_slot
+    CHECK (TIME(time_slot) >= '05:30:00' OR 
+           TIME(time_slot) <= '00:30:00'))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -112,8 +117,8 @@ CREATE TABLE IF NOT EXISTS `subway_scheduler`.`eta` (
   CONSTRAINT `fk_eta_station1`
     FOREIGN KEY (`station_ID`)
     REFERENCES `subway_scheduler`.`station` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
